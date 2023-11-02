@@ -1,1 +1,8 @@
+# rust directories
 /target
+
+# Locked files
+*.lock
+
+# Any log files
+*.log
