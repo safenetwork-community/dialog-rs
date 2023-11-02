@@ -1,7 +1,7 @@
 // Copyright (C) 2019 Robin Krahl <robin.krahl@ireas.org>
 // SPDX-License-Identifier: MIT
 
-#![warn(missing_docs, rust_2018_compatibility, rust_2018_idioms, unused)]
+#![warn(missing_docs, rust_2021_compatibility, unused)]
 
 //! Displays dialog boxes using various backends.
 //!
@@ -13,15 +13,9 @@
 //! - [`Password`][]: a password input dialog
 //! - [`Question`][]: a question dialog box
 //!
-//! These dialog boxes can be displayed using various backends:
+//! These dialog boxes can be displayed using only one type of backend:
 //! - [`Dialog`][]: uses `dialog` to display ncurses-based dialog boxes (requires the external
 //!   `dialog` tool)
-//! - [`KDialog`][]: uses `kdialog` to display Qt-based dialog boxes (requires the external
-//!   `kdialog` tool)
-//! - [`Stdio`][]: prints messages to the standard output and reads user input form standard input
-//!   (intended as a fallback backend)
-//! - [`Zenity`][]: uses `zenity` to display GTK-based dialog boxes (requires the external `zenity`
-//!   tool)
 //!
 //! You can let `dialog` choose the backend by calling the [`show`][] method on a dialog box.  If
 //! you want to choose the backend yourself, create a backend instance and pass it to
@@ -76,9 +70,6 @@
 //! [`Message`]: struct.Message.html
 //! [`Password`]: struct.Password.html
 //! [`Question`]: struct.Question.html
-//! [`KDialog`]: backends/struct.KDialog.html
-//! [`Stdio`]: backends/struct.Stdio.html
-//! [`Zenity`]: backends/struct.Zenity.html
 //! [`default_backend`]: fn.default_backend.html
 //! [`show`]: trait.DialogBox.html#method.show
 //! [`show_with`]: trait.DialogBox.html#method.show_with
@@ -94,7 +85,6 @@ mod error;
 /// [`Backend`]: trait.Backend.html
 pub mod backends;
 
-use dirs;
 use std::{
     env,
     path::{Path, PathBuf},
@@ -380,6 +370,8 @@ pub enum FileSelectionMode {
 /// ```
 ///
 /// [`FileSelectionMode`]: enum.FileSelectionMode.html
+
+#[allow(dead_code)]
 pub struct FileSelection {
     text: String,
     title: Option<String>,
@@ -453,18 +445,9 @@ impl DialogBox for FileSelection {
 /// - If the `DIALOG` environment variable is set to a valid backend name, this backend is used.
 ///   A valid backend name is the name of a struct in the `backends` module implementing the
 ///   `Backend` trait in any case.
-/// - If the `DISPLAY` environment variable is set, the following resolution algorithm is used:
-///   - If the `XDG_CURRENT_DESKTOP` environment variable is set to `KDE`, [`KDialog`][] is used.
-///   - Otherwise, the first available backend from this list is used:
-///     - [`Zenity`][]
-///     - [`KDialog`][]
 /// - If the [`Dialog`][] backend is available, it is used.
-/// - Otherwise, a [`Stdio`][] instance is returned.
 ///
 /// [`Dialog`]: backends/struct.Dialog.html
-/// [`KDialog`]: backends/struct.KDialog.html
-/// [`Stdio`]: backends/struct.Stdio.html
-/// [`Zenity`]: backends/struct.Zenity.html
 pub fn default_backend() -> Box<dyn backends::Backend> {
     if let Ok(backend) = env::var("DIALOG") {
         if let Some(backend) = backends::from_str(&backend) {
@@ -472,29 +455,5 @@ pub fn default_backend() -> Box<dyn backends::Backend> {
         }
     }
 
-    if let Ok(display) = env::var("DISPLAY") {
-        if !display.is_empty() {
-            // Prefer KDialog if the user is logged into a KDE session
-            let kdialog_available = backends::KDialog::is_available();
-            if let Ok(desktop) = env::var("XDG_CURRENT_DESKTOP") {
-                if kdialog_available && desktop == "KDE" {
-                    return Box::new(backends::KDialog::new());
-                }
-            }
-
-            if backends::Zenity::is_available() {
-                return Box::new(backends::Zenity::new());
-            }
-
-            if kdialog_available {
-                return Box::new(backends::KDialog::new());
-            }
-        }
-    }
-
-    if backends::Dialog::is_available() {
-        Box::new(backends::Dialog::new())
-    } else {
-        Box::new(backends::Stdio::new())
-    }
+    Box::new(backends::Dialog::new())
 }

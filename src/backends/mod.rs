@@ -5,8 +5,8 @@ mod dialog;
 
 pub use crate::backends::dialog::Dialog;
 
-use std::env;
-use std::path;
+// use std::env;
+// use std::path;
 
 use crate::Result;
 
@@ -36,6 +36,7 @@ pub trait Backend {
     fn show_file_selection(&self, file_selection: &super::FileSelection) -> Result<Option<String>>;
 }
 
+/*
 pub(crate) fn is_available(name: &str) -> bool {
     if let Ok(path) = env::var("PATH") {
         for part in path.split(':') {
@@ -46,6 +47,7 @@ pub(crate) fn is_available(name: &str) -> bool {
     }
     false
 }
+*/
 
 pub(crate) fn from_str(s: &str) -> Option<Box<dyn Backend>> {
     match s.to_lowercase().as_ref() {

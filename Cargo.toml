@@ -1,8 +1,17 @@
 [package]
-name = "dialog-rs"
+name = "dialog"
 version = "0.1.0"
+authors = ["Folât Pjêrsômêj <folaht@proton.me>"]
 edition = "2021"
+repository = ""
+description = "Display dialog boxes using linux dialog"
+keywords = ["ui", "dialog"]
+categories = ["command-line-interface", "gui"]
+readme = "README.md"
+license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+rpassword = "7.2"
+dirs = "5.0"
