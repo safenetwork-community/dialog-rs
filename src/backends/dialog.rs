@@ -166,6 +166,10 @@ impl super::Backend for Dialog {
 
     fn show_password(&self, password: &Password) -> Result<Option<String>> {
         let args = vec!["--passwordbox", &password.text];
+        let mut post_args: Vec<&str> = Vec::new();
+        if let Some(ref insecure) = password.insecure {
+            post_args.push(insecure);
+        }
         self.execute(args, vec![], &password.title)
             .and_then(get_stderr)
     }
