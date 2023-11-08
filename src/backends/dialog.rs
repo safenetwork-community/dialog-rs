@@ -3,7 +3,7 @@
 
 use std::process;
 
-use crate::{Choice, Error, FileSelection, Input, Message, Password, Question, Result};
+use crate::{Choice, Error, FileSelection, Menu, Input, Message, Password, Question, Result};
 
 /// The `dialog` backend.
 ///
@@ -134,6 +134,13 @@ fn get_stderr(output: process::Output) -> Result<Option<String>> {
 }
 
 impl super::Backend for Dialog {
+    fn show_file_selection(&self, file_selection: &FileSelection) -> Result<Option<String>> {
+        let dir = file_selection.path_to_string().ok_or("path not valid")?;
+        let args = vec!["--fselect", &dir];
+        self.execute(args, vec![], &file_selection.title)
+            .and_then(get_stderr)
+    }
+
     fn show_input(&self, input: &Input) -> Result<Option<String>> {
         let args = vec!["--inputbox", &input.text];
         let mut post_args: Vec<&str> = Vec::new();
@@ -142,6 +149,12 @@ impl super::Backend for Dialog {
         }
         self.execute(args, post_args, &input.title)
             .and_then(get_stderr)
+    }
+
+    fn show_menu(&self, menu: &Menu) -> Result<Choice> {
+        let args = vec!["--menu", &menu.text];
+        self.execute(args, vec![], &menu.title)
+            .and_then(|output| get_choice(output.status))
     }
 
     fn show_message(&self, message: &Message) -> Result<()> {
@@ -161,12 +174,5 @@ impl super::Backend for Dialog {
         let args = vec!["--yesno", &question.text];
         self.execute(args, vec![], &question.title)
             .and_then(|output| get_choice(output.status))
-    }
-
-    fn show_file_selection(&self, file_selection: &FileSelection) -> Result<Option<String>> {
-        let dir = file_selection.path_to_string().ok_or("path not valid")?;
-        let args = vec!["--fselect", &dir];
-        self.execute(args, vec![], &file_selection.title)
-            .and_then(get_stderr)
     }
 }

@@ -9,6 +9,7 @@
 //! are:
 //! - [`FileSelection`][]: a file chooser dialog box
 //! - [`Input`][]: a text input dialog
+//! - [`Menu`][]: a menu selection box
 //! - [`Message`][]: a simple message box
 //! - [`Password`][]: a password input dialog
 //! - [`Question`][]: a question dialog box
@@ -111,6 +112,58 @@ pub trait DialogBox {
     where
         B: backends::Backend + ?Sized;
 }
+
+/// A menu box.
+///
+/// This dialog box displays a text and an optional title and has a yes and a no button.  The
+/// output is the button presed by the user, or Cancel if the dialog has been cancelled.
+///
+/// # Example
+///
+/// ```no_run
+/// use dialog::DialogBox;
+///
+/// let choice = dialog::Menu::new("Do you want to continue?")
+///     .title("Question")
+///     .show()
+///     .expect("Could not display dialog box");
+/// println!("The user chose: {:?}", choice);
+/// ```
+pub struct Menu {
+    text: String,
+    title: Option<String>,
+}
+
+impl Menu {
+    /// Creates a new question dialog with the given text.
+    pub fn new(text: impl Into<String>) -> Menu {
+        Menu {
+            text: text.into(),
+            title: None,
+        }
+    }
+
+    /// Sets the title of this question dialog box.
+    ///
+    /// This method returns a reference to `self` to enable chaining.
+    pub fn title(&mut self, title: impl Into<String>) -> &mut Menu {
+        self.title = Some(title.into());
+        self
+    }
+}
+
+impl DialogBox for Menu {
+    type Output = Choice;
+
+    fn show_with<B>(&self, backend: impl AsRef<B>) -> Result<Self::Output>
+    where
+        B: backends::Backend + ?Sized,
+    {
+        backend.as_ref().show_menu(self)
+    }
+}
+
+
 
 /// A message box.
 ///
@@ -236,6 +289,7 @@ impl DialogBox for Input {
 ///
 /// let password = dialog::Password::new("Please enter a new password")
 ///     .title("Password")
+///     .insecure(true)
 ///     .show()
 ///     .expect("Could not display dialog box");
 /// match password {
@@ -246,6 +300,7 @@ impl DialogBox for Input {
 pub struct Password {
     text: String,
     title: Option<String>,
+    insecure: bool,
 }
 
 impl Password {
@@ -254,6 +309,7 @@ impl Password {
         Password {
             text: text.into(),
             title: None,
+            insecure: false,
         }
     }
 
@@ -262,6 +318,14 @@ impl Password {
     /// This method returns a reference to `self` to enable chaining.
     pub fn title(&mut self, title: impl Into<String>) -> &mut Password {
         self.title = Some(title.into());
+        self
+    }
+
+    /// Toggles password dialog box to show the length of the password in asterisks.
+    ///
+    /// This method returns a reference to `self` to enable chaining.
+    pub fn insecure(&mut self, insecure: bool) -> &mut Password {
+        self.insecure = insecure;
         self
     }
 }

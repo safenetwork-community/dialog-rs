@@ -23,6 +23,9 @@ pub trait Backend {
     /// Shows the given input dialog and returns the input.
     fn show_input(&self, input: &super::Input) -> Result<Option<String>>;
 
+    /// Shows the given menu dialog and returns the choice.
+    fn show_menu(&self, menu: &super::Menu) -> Result<super::Choice>;
+
     /// Shows the given message dialog.
     fn show_message(&self, message: &super::Message) -> Result<()>;
 
