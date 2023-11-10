@@ -56,7 +56,7 @@ impl Dialog {
         title: &Option<String>,
         boxtype: &str,
         boxtype_arg: &Option<String>,
-        args: Vec<String>,
+        args: Vec<&str>,
     ) -> Result<process::Output> {
         let mut command = process::Command::new("dialog");
         command.stdin(process::Stdio::inherit());
@@ -147,18 +147,20 @@ impl super::Backend for Dialog {
     }
 
     fn show_input(&self, input: &Input) -> Result<Option<String>> {
-        let mut args: Vec<String> = Vec::new();
+        let mut args: Vec<&str> = Vec::new();
         if let Some(ref default) = input.default {
-            args.push(default.to_string());
+            args.push(default);
         }
         self.execute(&input.title, "--inputbox", &Some(input.text.clone()), args)
             .and_then(get_stderr)
     }
 
     fn show_menu(&self, menu: &Menu) -> Result<Option<String>> {
-        let mut args: Vec<String> = Vec::new();
-        args.push(menu.menu_height.to_string());
-        args.extend(menu.list.clone());
+        let mut args: Vec<&str> = Vec::new();
+        let menu_height: String = menu.menu_height.to_string();
+        args.push(menu_height.as_str());
+        let v8: Vec<&str> = menu.list.iter().map(AsRef::as_ref).collect();
+        args.extend(v8);
 
         self.execute(&menu.title, "--menu", &Some(menu.text.clone()), args)
             .and_then(get_stderr)
@@ -171,9 +173,9 @@ impl super::Backend for Dialog {
     }
 
     fn show_password(&self, password: &Password) -> Result<Option<String>> {
-        let mut args: Vec<String> = Vec::new();
+        let mut args: Vec<&str> = Vec::new();
         if password.insecure {
-            args.push(String::from("--insecure"));
+            args.push("--insecure");
         }
         self.execute(&password.title, "--passwordbox", &Some(password.text.clone()), args)
             .and_then(get_stderr)
