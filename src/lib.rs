@@ -143,7 +143,7 @@ impl Menu {
             title: None,
             text: text.into(),
             menu_height: menu_height,
-            list: list.into_iter().flat_map(|x| x.into_iter().map(|y| y.to_string())).collect(),
+            list: list.into_iter().flat_map(|x| x.into_iter().map(String::from)).collect(),
         }
     }
 
