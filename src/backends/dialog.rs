@@ -53,9 +53,10 @@ impl Dialog {
 
     fn execute(
         &self,
-        args: Vec<&str>,
-        post_args: Vec<&str>,
         title: &Option<String>,
+        boxtype: &str,
+        boxtype_arg: &Option<String>,
+        args: Vec<String>,
     ) -> Result<process::Output> {
         let mut command = process::Command::new("dialog");
         command.stdin(process::Stdio::inherit());
@@ -68,12 +69,17 @@ impl Dialog {
         if let Some(ref title) = title {
             command.arg("--title");
             command.arg(title);
+        } 
+
+        command.arg(boxtype);
+        
+        if let Some(ref boxtype_arg) = boxtype_arg {
+            command.arg(boxtype_arg);
         }
 
-        command.args(args);
         command.arg(&self.height);
         command.arg(&self.width);
-        command.args(post_args);
+        command.args(args);
 
         command.output().map_err(Error::IoError)
     }
@@ -136,47 +142,45 @@ fn get_stderr(output: process::Output) -> Result<Option<String>> {
 impl super::Backend for Dialog {
     fn show_file_selection(&self, file_selection: &FileSelection) -> Result<Option<String>> {
         let dir = file_selection.path_to_string().ok_or("path not valid")?;
-        let args = vec!["--fselect", &dir];
-        self.execute(args, vec![], &file_selection.title)
+        self.execute(&file_selection.title, "--fselect", &Some(dir), vec![])
             .and_then(get_stderr)
     }
 
     fn show_input(&self, input: &Input) -> Result<Option<String>> {
-        let args = vec!["--inputbox", &input.text];
-        let mut post_args: Vec<&str> = Vec::new();
+        let mut args: Vec<String> = Vec::new();
         if let Some(ref default) = input.default {
-            post_args.push(default);
+            args.push(default.to_string());
         }
-        self.execute(args, post_args, &input.title)
+        self.execute(&input.title, "--inputbox", &Some(input.text.clone()), args)
             .and_then(get_stderr)
     }
 
-    fn show_menu(&self, menu: &Menu) -> Result<Choice> {
-        let args = vec!["--menu", &menu.text];
-        self.execute(args, vec![], &menu.title)
-            .and_then(|output| get_choice(output.status))
+    fn show_menu(&self, menu: &Menu) -> Result<Option<String>> {
+        let mut args: Vec<String> = Vec::new();
+        args.push(menu.menu_height.to_string());
+        args.extend(menu.list.clone());
+
+        self.execute(&menu.title, "--menu", &Some(menu.text.clone()), args)
+            .and_then(get_stderr)
     }
 
     fn show_message(&self, message: &Message) -> Result<()> {
-        let args = vec!["--msgbox", &message.text];
-        self.execute(args, vec![], &message.title)
+        self.execute(&message.title, "--msgbox", &Some(message.text.clone()), vec![])
             .and_then(|output| require_success(output.status))
             .map(|_| ())
     }
 
     fn show_password(&self, password: &Password) -> Result<Option<String>> {
-        let args = vec!["--passwordbox", &password.text];
-        let mut post_args: Vec<&str> = Vec::new();
+        let mut args: Vec<String> = Vec::new();
         if password.insecure {
-            post_args.push("--insecure");
+            args.push(String::from("--insecure"));
         }
-        self.execute(args, vec![], &password.title)
+        self.execute(&password.title, "--passwordbox", &Some(password.text.clone()), args)
             .and_then(get_stderr)
     }
 
     fn show_question(&self, question: &Question) -> Result<Choice> {
-        let args = vec!["--yesno", &question.text];
-        self.execute(args, vec![], &question.title)
+        self.execute(&question.title, "--yesno", &Some(question.text.clone()), vec![])
             .and_then(|output| get_choice(output.status))
     }
 }

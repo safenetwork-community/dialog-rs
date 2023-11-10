@@ -132,14 +132,18 @@ pub trait DialogBox {
 pub struct Menu {
     text: String,
     title: Option<String>,
+    menu_height: u32,
+    list: Vec<String>,
 }
 
 impl Menu {
     /// Creates a new question dialog with the given text.
-    pub fn new(text: impl Into<String>) -> Menu {
+    pub fn new(text: impl Into<String>, menu_height: impl Into<u32>, list: Vec<[String; 2]>) -> Menu {
         Menu {
-            text: text.into(),
             title: None,
+            text: text.into(),
+            menu_height: menu_height.into(),
+            list: list.into_iter().flatten().collect(),
         }
     }
 
@@ -153,7 +157,7 @@ impl Menu {
 }
 
 impl DialogBox for Menu {
-    type Output = Choice;
+    type Output = Option<String>;
 
     fn show_with<B>(&self, backend: impl AsRef<B>) -> Result<Self::Output>
     where
