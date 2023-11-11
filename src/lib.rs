@@ -133,11 +133,11 @@ pub struct Menu {
 
 impl Menu {
     /// Creates a new question dialog with the given text.
-    pub fn new(text: impl Into<String>, menu_height: u32, list: Vec<[&str; 2]>) -> Menu {
+    pub fn new(text: impl Into<String>, menu_height: u32, list: Vec<[String; 2]>) -> Menu {
         Menu {
             text: text.into(),
             menu_height: menu_height,
-            list: list.into_iter().flat_map(|x| x.into_iter().map(String::from)).collect(),
+            list: list.into_iter().flatten().collect(),
         }
     }
 }
