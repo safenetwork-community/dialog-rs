@@ -30,7 +30,6 @@
 //! use dialog::DialogBox;
 //!
 //! dialog::Message::new("Did you know that I am using the dialog crate?")
-//!     .title("Public Service Announcement")
 //!     .show()
 //!     .expect("Could not display dialog box");
 //! ```
@@ -42,10 +41,10 @@
 //!
 //! let mut backend = dialog::backends::Dialog::new();
 //! backend.set_backtitle("dialog demo");
+//! backend.set_title("box title");
 //! backend.set_width(100);
 //! backend.set_height(10);
 //! dialog::Message::new("Did you know that I am using the dialog crate?")
-//!     .title("Public Service Announcement")
 //!     .show_with(&backend)
 //!     .expect("Could not display dialog box");
 //! ```
@@ -56,7 +55,6 @@
 //! use dialog::DialogBox;
 //!
 //! let name = dialog::Input::new("Please enter your name")
-//!     .title("Name")
 //!     .show()
 //!     .expect("Could not display dialog box");
 //! match name {
@@ -115,23 +113,20 @@ pub trait DialogBox {
 
 /// A menu box.
 ///
-/// This dialog box displays a text and an optional title and has a yes and a no button.  The
-/// output is the button presed by the user, or Cancel if the dialog has been cancelled.
+/// This dialog box displays a menu.
 ///
 /// # Example
 ///
 /// ```no_run
 /// use dialog::DialogBox;
 ///
-/// let choice = dialog::Menu::new("Do you want to continue?")
-///     .title("Question")
+/// let choice = dialog::Menu::new("Please choose one of the following items..", 
+/// 10, vec![["item1","value1"]["item2","value2"]])
 ///     .show()
-///     .expect("Could not display dialog box");
-/// println!("The user chose: {:?}", choice);
+///     .expect("Could not display menu box");
 /// ```
 pub struct Menu {
     text: String,
-    title: Option<String>,
     menu_height: u32,
     list: Vec<String>,
 }
@@ -140,19 +135,10 @@ impl Menu {
     /// Creates a new question dialog with the given text.
     pub fn new(text: impl Into<String>, menu_height: u32, list: Vec<[&str; 2]>) -> Menu {
         Menu {
-            title: None,
             text: text.into(),
             menu_height: menu_height,
             list: list.into_iter().flat_map(|x| x.into_iter().map(String::from)).collect(),
         }
-    }
-
-    /// Sets the title of this question dialog box.
-    ///
-    /// This method returns a reference to `self` to enable chaining.
-    pub fn title(&mut self, title: impl Into<String>) -> &mut Menu {
-        self.title = Some(title.into());
-        self
     }
 }
 
@@ -171,7 +157,7 @@ impl DialogBox for Menu {
 
 /// A message box.
 ///
-/// This dialog box displays a text and an optional title and has a single OK button.  It does not
+/// This dialog box displays a text and has a single OK button.  It does not
 /// produce any output.
 ///
 /// # Example
@@ -180,13 +166,11 @@ impl DialogBox for Menu {
 /// use dialog::DialogBox;
 ///
 /// dialog::Message::new("The operation was successful.")
-///     .title("Success")
 ///     .show()
 ///     .expect("Could not display dialog box");
 /// ```
 pub struct Message {
     text: String,
-    title: Option<String>,
 }
 
 impl Message {
@@ -194,16 +178,7 @@ impl Message {
     pub fn new(text: impl Into<String>) -> Message {
         Message {
             text: text.into(),
-            title: None,
         }
-    }
-
-    /// Sets the title of this message box.
-    ///
-    /// This method returns a reference to `self` to enable chaining.
-    pub fn title(&mut self, title: impl Into<String>) -> &mut Message {
-        self.title = Some(title.into());
-        self
     }
 }
 
@@ -229,7 +204,6 @@ impl DialogBox for Message {
 /// use dialog::DialogBox;
 ///
 /// let name = dialog::Input::new("Please enter your name")
-///     .title("Name")
 ///     .show()
 ///     .expect("Could not display dialog box");
 /// match name {
@@ -239,7 +213,6 @@ impl DialogBox for Message {
 /// ```
 pub struct Input {
     text: String,
-    title: Option<String>,
     default: Option<String>,
 }
 
@@ -248,17 +221,8 @@ impl Input {
     pub fn new(text: impl Into<String>) -> Input {
         Input {
             text: text.into(),
-            title: None,
             default: None,
         }
-    }
-
-    /// Sets the title of this input box.
-    ///
-    /// This method returns a reference to `self` to enable chaining.
-    pub fn title(&mut self, title: impl Into<String>) -> &mut Input {
-        self.title = Some(title.into());
-        self
     }
 
     /// Sets the default value of this input box.
@@ -292,8 +256,6 @@ impl DialogBox for Input {
 /// use dialog::DialogBox;
 ///
 /// let password = dialog::Password::new("Please enter a new password")
-///     .title("Password")
-///     .insecure(true)
 ///     .show()
 ///     .expect("Could not display dialog box");
 /// match password {
@@ -303,8 +265,6 @@ impl DialogBox for Input {
 /// ```
 pub struct Password {
     text: String,
-    title: Option<String>,
-    insecure: bool,
 }
 
 impl Password {
@@ -312,25 +272,7 @@ impl Password {
     pub fn new(text: impl Into<String>) -> Password {
         Password {
             text: text.into(),
-            title: None,
-            insecure: false,
         }
-    }
-
-    /// Sets the title of this password dialog box.
-    ///
-    /// This method returns a reference to `self` to enable chaining.
-    pub fn title(&mut self, title: impl Into<String>) -> &mut Password {
-        self.title = Some(title.into());
-        self
-    }
-
-    /// Toggles password dialog box to show the length of the password in asterisks.
-    ///
-    /// This method returns a reference to `self` to enable chaining.
-    pub fn insecure(&mut self, insecure: bool) -> &mut Password {
-        self.insecure = insecure;
-        self
     }
 }
 
@@ -358,7 +300,7 @@ pub enum Choice {
 
 /// A question dialog box.
 ///
-/// This dialog box displays a text and an optional title and has a yes and a no button.  The
+/// This dialog box displays a text and has a yes and a no button.  The
 /// output is the button presed by the user, or Cancel if the dialog has been cancelled.
 ///
 /// # Example
@@ -367,14 +309,12 @@ pub enum Choice {
 /// use dialog::DialogBox;
 ///
 /// let choice = dialog::Question::new("Do you want to continue?")
-///     .title("Question")
 ///     .show()
 ///     .expect("Could not display dialog box");
 /// println!("The user chose: {:?}", choice);
 /// ```
 pub struct Question {
     text: String,
-    title: Option<String>,
 }
 
 impl Question {
@@ -382,16 +322,7 @@ impl Question {
     pub fn new(text: impl Into<String>) -> Question {
         Question {
             text: text.into(),
-            title: None,
         }
-    }
-
-    /// Sets the title of this question dialog box.
-    ///
-    /// This method returns a reference to `self` to enable chaining.
-    pub fn title(&mut self, title: impl Into<String>) -> &mut Question {
-        self.title = Some(title.into());
-        self
     }
 }
 
@@ -417,7 +348,7 @@ pub enum FileSelectionMode {
 
 /// A file chooser dialog box.
 ///
-/// This dialog box opens a file choser with an optional title in the specified path.  If the path
+/// This dialog box opens a file choser in the specified path.  If the path
 /// is not specified, it defaults to the user’s home directory.
 ///
 /// The backends might support multiple operation modes, for example open or save dialogs.  You can
@@ -430,7 +361,6 @@ pub enum FileSelectionMode {
 /// use dialog::DialogBox;
 ///
 /// let choice = dialog::FileSelection::new("Please select a file")
-///     .title("File Selection")
 ///     .path("/home/user/Downloads")
 ///     .show()
 ///     .expect("Could not display dialog box");
@@ -442,7 +372,6 @@ pub enum FileSelectionMode {
 #[allow(dead_code)]
 pub struct FileSelection {
     text: String,
-    title: Option<String>,
     path: Option<PathBuf>,
     mode: FileSelectionMode,
 }
@@ -452,18 +381,9 @@ impl FileSelection {
     pub fn new(text: impl Into<String>) -> FileSelection {
         FileSelection {
             text: text.into(),
-            title: None,
             path: dirs::home_dir(),
             mode: FileSelectionMode::Open,
         }
-    }
-
-    /// Sets the title of this file chooser dialog box.
-    ///
-    /// This method returns a reference to `self` to enable chaining.
-    pub fn title(&mut self, title: impl Into<String>) -> &mut FileSelection {
-        self.title = Some(title.into());
-        self
     }
 
     /// Sets the path of this file chooser dialog box.

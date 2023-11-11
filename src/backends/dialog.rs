@@ -12,6 +12,8 @@ use crate::{Choice, Error, FileSelection, Menu, Input, Message, Password, Questi
 #[derive(Debug)]
 pub struct Dialog {
     backtitle: Option<String>,
+    title: Option<String>,
+    insecure: bool,
     width: String,
     height: String,
 }
@@ -22,14 +24,29 @@ impl Dialog {
         Default::default()
     }
 
-    /// Sets the backtitle for the dialog boxes.
+    /// Sets the backtitle for the dialog box.
     ///
     /// The backtitle is displayed on the backdrop, at the top of the screen.
     pub fn set_backtitle(&mut self, backtitle: impl Into<String>) {
         self.backtitle = Some(backtitle.into());
     }
 
-    /// Sets the height of the dialog boxes.
+    /// Sets the title for the dialog box.
+    ///
+    /// The title is displayed in the box, at the top.
+    pub fn set_title(&mut self, title: impl Into<String>) {
+        self.title = Some(title.into());
+    }
+
+    /// Set the password input of the dialog box to insecure.
+    ///
+    /// At the insecure level, input will be visible in asterisks per character.
+    /// At the secure level, any input will not be visible at all.
+    pub fn set_insecure(&mut self, insecure: bool) {
+        self.insecure = insecure;
+    }
+
+    /// Sets the height of the dialog box.
     ///
     /// The height is given in characters.  The actual height of the dialog box might be higher
     /// than the given height if the content would not fit otherwise.  The default height is zero.
@@ -37,7 +54,7 @@ impl Dialog {
         self.height = height.to_string();
     }
 
-    /// Sets the width of the dialog boxes.
+    /// Sets the width of the dialog box.
     ///
     /// The width is given in characters.  The actual width of the dialog box might be higher than
     /// the given width if the content would not fit otherwise.  The default width is zero.
@@ -45,15 +62,8 @@ impl Dialog {
         self.width = width.to_string();
     }
 
-    /*
-    pub(crate) fn is_available() -> bool {
-        super::is_available("dialog")
-    }
-    */
-
     fn execute(
         &self,
-        title: &Option<String>,
         boxtype: &str,
         boxtype_arg: &Option<String>,
         args: Vec<&str>,
@@ -62,15 +72,23 @@ impl Dialog {
         command.stdin(process::Stdio::inherit());
         command.stdout(process::Stdio::inherit());
 
+        let mut common_options: Vec<&str> = Vec::new();
+
         if let Some(ref backtitle) = self.backtitle {
-            command.arg("--backtitle");
-            command.arg(backtitle);
+            common_options.push("--backtitle");
+            common_options.push(backtitle);
         }
-        if let Some(ref title) = title {
-            command.arg("--title");
-            command.arg(title);
+
+        if let Some(ref title) = self.title {
+            common_options.push("--title");
+            common_options.push(title);
         } 
 
+        if self.insecure {
+            common_options.push("--insecure");
+        } 
+
+        command.args(common_options);
         command.arg(boxtype);
         
         if let Some(ref boxtype_arg) = boxtype_arg {
@@ -95,6 +113,8 @@ impl Default for Dialog {
     fn default() -> Self {
         Dialog {
             backtitle: None,
+            title: None,
+            insecure: false,
             height: "0".to_string(),
             width: "0".to_string(),
         }
@@ -142,7 +162,7 @@ fn get_stderr(output: process::Output) -> Result<Option<String>> {
 impl super::Backend for Dialog {
     fn show_file_selection(&self, file_selection: &FileSelection) -> Result<Option<String>> {
         let dir = file_selection.path_to_string().ok_or("path not valid")?;
-        self.execute(&file_selection.title, "--fselect", &Some(dir), vec![])
+        self.execute("--fselect", &Some(dir), vec![])
             .and_then(get_stderr)
     }
 
@@ -151,7 +171,7 @@ impl super::Backend for Dialog {
         if let Some(ref default) = input.default {
             args.push(default);
         }
-        self.execute(&input.title, "--inputbox", &Some(input.text.clone()), args)
+        self.execute("--inputbox", &Some(input.text.clone()), args)
             .and_then(get_stderr)
     }
 
@@ -159,30 +179,26 @@ impl super::Backend for Dialog {
         let mut args: Vec<&str> = Vec::new();
         let menu_height: String = menu.menu_height.to_string();
         args.push(menu_height.as_str());
-        let v8: Vec<&str> = menu.list.iter().map(AsRef::as_ref).collect();
-        args.extend(v8);
+        let menu_list: Vec<&str> = menu.list.iter().map(AsRef::as_ref).collect();
+        args.extend(menu_list);
 
-        self.execute(&menu.title, "--menu", &Some(menu.text.clone()), args)
+        self.execute("--menu", &Some(menu.text.clone()), args)
             .and_then(get_stderr)
     }
 
     fn show_message(&self, message: &Message) -> Result<()> {
-        self.execute(&message.title, "--msgbox", &Some(message.text.clone()), vec![])
+        self.execute("--msgbox", &Some(message.text.clone()), vec![])
             .and_then(|output| require_success(output.status))
             .map(|_| ())
     }
 
     fn show_password(&self, password: &Password) -> Result<Option<String>> {
-        let mut args: Vec<&str> = Vec::new();
-        if password.insecure {
-            args.push("--insecure");
-        }
-        self.execute(&password.title, "--passwordbox", &Some(password.text.clone()), args)
+        self.execute("--passwordbox", &Some(password.text.clone()), vec![])
             .and_then(get_stderr)
     }
 
     fn show_question(&self, question: &Question) -> Result<Choice> {
-        self.execute(&question.title, "--yesno", &Some(question.text.clone()), vec![])
+        self.execute("--yesno", &Some(question.text.clone()), vec![])
             .and_then(|output| get_choice(output.status))
     }
 }
