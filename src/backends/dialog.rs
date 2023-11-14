@@ -13,6 +13,8 @@ use crate::{Choice, Error, FileSelection, Menu, Input, Message, Password, Questi
 pub struct Dialog {
     backtitle: Option<String>,
     title: Option<String>,
+    label_helpbutton: Option<String>,
+    label_extrabutton: Option<String>,
     insecure: bool,
     width: String,
     height: String,
@@ -36,6 +38,20 @@ impl Dialog {
     /// The title is displayed in the box, at the top.
     pub fn set_title(&mut self, title: impl Into<String>) {
         self.title = Some(title.into());
+    }
+
+    /// Sets the help button for the dialog box.
+    ///
+    /// The help button is displayed after the OK and CANCEL button.
+    pub fn set_helpbutton(&mut self, label: impl Into<String>) {
+        self.label_helpbutton = Some(label.into());
+    }
+
+    /// Sets the extra button for the dialog box.
+    ///
+    /// The extra button is displayed between the OK and CANCEL button.
+    pub fn set_extrabutton(&mut self, label: impl Into<String>) {
+        self.label_extrabutton = Some(label.into());
     }
 
     /// Set the password input of the dialog box to insecure.
@@ -83,6 +99,16 @@ impl Dialog {
             common_options.push("--title");
             common_options.push(title);
         } 
+
+        if let Some(ref label_helpbutton) = self.label_helpbutton {
+            common_options.push("--help-button");
+            common_options.push(label_helpbutton);
+        }
+
+        if let Some(ref label_extrabutton) = self.label_extrabutton {
+            common_options.push("--extra-button");
+            common_options.push(label_extrabutton);
+        }
 
         if self.insecure {
             common_options.push("--insecure");
