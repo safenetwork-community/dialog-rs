@@ -140,6 +140,8 @@ impl Default for Dialog {
         Dialog {
             backtitle: None,
             title: None,
+            label_helpbutton: None,
+            label_extrabutton: None,
             insecure: false,
             height: "0".to_string(),
             width: "0".to_string(),
