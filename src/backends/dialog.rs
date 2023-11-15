@@ -102,11 +102,13 @@ impl Dialog {
 
         if let Some(ref label_helpbutton) = self.label_helpbutton {
             common_options.push("--help-button");
+            common_options.push("--help-label");
             common_options.push(label_helpbutton);
         }
 
         if let Some(ref label_extrabutton) = self.label_extrabutton {
             common_options.push("--extra-button");
+            common_options.push("--extra-label");
             common_options.push(label_extrabutton);
         }
 
