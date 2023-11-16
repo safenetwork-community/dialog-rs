@@ -189,6 +189,21 @@ fn get_stderr(output: process::Output) -> Result<Option<String>> {
     }
 }
 
+fn get_stdchoice(output: process::Output) -> Result<(Choice, Option<String>)> {
+    if let Some(code) = output.status.code() {
+        match code {
+            0 => Ok((Choice::Yes, Some(String::from_utf8(output.stderr).unwrap()))),
+            1 => Ok((Choice::No, None)),
+            3 => Ok((Choice::Extra, None)),
+            255 => Ok((Choice::Cancel, None)),
+            _ => Err(Error::from(("dialog", output.status))),
+        }
+    } else {
+        Err(Error::from(("dialog", output.status)))
+    }
+}
+
+
 impl super::Backend for Dialog {
     fn show_file_selection(&self, file_selection: &FileSelection) -> Result<Option<String>> {
         let dir = file_selection.path_to_string().ok_or("path not valid")?;
@@ -205,7 +220,7 @@ impl super::Backend for Dialog {
             .and_then(get_stderr)
     }
 
-    fn show_menu(&self, menu: &Menu) -> Result<Option<String>> {
+    fn show_menu(&self, menu: &Menu) -> Result<(Choice, Option<String>)> {
         let mut args: Vec<&str> = Vec::new();
         let menu_height: String = menu.menu_height.to_string();
         args.push(menu_height.as_str());
@@ -213,7 +228,7 @@ impl super::Backend for Dialog {
         args.extend(menu_list);
 
         self.execute("--menu", &Some(menu.text.clone()), args)
-            .and_then(get_stderr)
+            .and_then(get_stdchoice)
     }
 
     fn show_message(&self, message: &Message) -> Result<()> {

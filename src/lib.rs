@@ -143,7 +143,7 @@ impl Menu {
 }
 
 impl DialogBox for Menu {
-    type Output = Option<String>;
+    type Output = (Choice, Option<String>);
 
     fn show_with<B>(&self, backend: impl AsRef<B>) -> Result<Self::Output>
     where
@@ -290,10 +290,14 @@ impl DialogBox for Password {
 /// A user choise in a dialog box.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Choice {
-    /// The yes button.
+    /// The ok/yes button.
     Yes,
     /// The no button.
     No,
+    /// The extra button.
+    Extra,
+    /// The help button
+    Help, 
     /// The cancel button or a cancelled dialog.
     Cancel,
 }
