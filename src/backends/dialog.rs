@@ -13,6 +13,7 @@ use crate::{Choice, Error, FileSelection, Menu, Input, Message, Password, Questi
 pub struct Dialog {
     backtitle: Option<String>,
     title: Option<String>,
+    label_cancelbutton: Option<String>,
     label_helpbutton: Option<String>,
     label_extrabutton: Option<String>,
     insecure: bool,
@@ -53,6 +54,13 @@ impl Dialog {
     /// The extra button is displayed between the OK and CANCEL button.
     pub fn set_extrabutton(&mut self, label: impl Into<String>) {
         self.label_extrabutton = Some(label.into());
+    }
+
+    /// Sets the label of the cancel button for the dialog box.
+    ///
+    /// The cancel button is displayed after the OK button.
+    pub fn set_cancellabel(&mut self, label: impl Into<String>) {
+        self.label_cancelbutton = Some(label.into());
     }
 
     /// Suppresses the cancel the button.
@@ -120,6 +128,11 @@ impl Dialog {
             common_options.push(label_extrabutton);
         }
 
+        if let Some(ref label_cancelbutton) = self.label_cancelbutton {
+            common_options.push("--cancel-label");
+            common_options.push(label_cancelbutton);
+        }
+
         if !self.cancelbutton {
             common_options.push("--no-cancel");
         }
@@ -154,6 +167,7 @@ impl Default for Dialog {
         Dialog {
             backtitle: None,
             title: None,
+            label_cancelbutton: None,
             label_helpbutton: None,
             label_extrabutton: None,
             insecure: false,
