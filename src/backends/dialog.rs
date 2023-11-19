@@ -172,52 +172,38 @@ fn get_choice(status: process::ExitStatus) -> Result<Choice> {
     }
 }
 
-fn get_stderr(output: process::Output) -> Result<Option<String>> {
-    if output.status.success() {
-        String::from_utf8(output.stderr)
-            .map(Some)
-            .map_err(Error::from)
-    } else if let Some(code) = output.status.code() {
-        match code {
-            0 => Ok(None),
-            1 => Ok(None),
-            255 => Ok(None),
-            _ => Err(Error::from(("dialog", output.status))),
-        }
-    } else {
-        Err(Error::from(("dialog", output.status)))
-    }
-}
-
 fn get_stdchoice(output: process::Output) -> Result<(Choice, Option<String>)> {
-    if let Some(code) = output.status.code() {
-        match code {
-            0 => Ok((Choice::Yes, Some(String::from_utf8(output.stderr).unwrap()))),
-            1 => Ok((Choice::No, None)),
-            3 => Ok((Choice::Extra, None)),
-            255 => Ok((Choice::Cancel, None)),
-            _ => Err(Error::from(("dialog", output.status))),
-        }
-    } else {
-        Err(Error::from(("dialog", output.status)))
+    let status = output.status; 
+    match status.success() {
+        true => {
+            let output_dialog = String::from_utf8(output.stderr)
+            .map(Some).unwrap();
+            match status.code().unwrap() {
+                0 => Ok((Choice::Yes, output_dialog)),
+                1 => Ok((Choice::No, output_dialog)),
+                3 => Ok((Choice::Extra, output_dialog)),
+                255 => Ok((Choice::Cancel, output_dialog)),
+                _ => Err(Error::from(("dialog", output.status))),
+            } 
+        },
+        false => Err(Error::from(("dialog", status)))
     }
 }
-
 
 impl super::Backend for Dialog {
-    fn show_file_selection(&self, file_selection: &FileSelection) -> Result<Option<String>> {
+    fn show_file_selection(&self, file_selection: &FileSelection) -> Result<(Choice, Option<String>)> {
         let dir = file_selection.path_to_string().ok_or("path not valid")?;
         self.execute("--fselect", &Some(dir), vec![])
-            .and_then(get_stderr)
+            .and_then(get_stdchoice)
     }
 
-    fn show_input(&self, input: &Input) -> Result<Option<String>> {
+    fn show_input(&self, input: &Input) -> Result<(Choice, Option<String>)> {
         let mut args: Vec<&str> = Vec::new();
         if let Some(ref default) = input.default {
             args.push(default);
         }
         self.execute("--inputbox", &Some(input.text.clone()), args)
-            .and_then(get_stderr)
+            .and_then(get_stdchoice)
     }
 
     fn show_menu(&self, menu: &Menu) -> Result<(Choice, Option<String>)> {
@@ -237,9 +223,9 @@ impl super::Backend for Dialog {
             .map(|_| ())
     }
 
-    fn show_password(&self, password: &Password) -> Result<Option<String>> {
+    fn show_password(&self, password: &Password) -> Result<(Choice, Option<String>)> {
         self.execute("--passwordbox", &Some(password.text.clone()), vec![])
-            .and_then(get_stderr)
+            .and_then(get_stdchoice)
     }
 
     fn show_question(&self, question: &Question) -> Result<Choice> {

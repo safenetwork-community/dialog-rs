@@ -235,7 +235,7 @@ impl Input {
 }
 
 impl DialogBox for Input {
-    type Output = Option<String>;
+    type Output = (Choice, Option<String>);
 
     fn show_with<B>(&self, backend: impl AsRef<B>) -> Result<Self::Output>
     where
@@ -277,7 +277,7 @@ impl Password {
 }
 
 impl DialogBox for Password {
-    type Output = Option<String>;
+    type Output = (Choice, Option<String>);
 
     fn show_with<B>(&self, backend: impl AsRef<B>) -> Result<Self::Output>
     where
@@ -421,7 +421,7 @@ impl FileSelection {
 }
 
 impl DialogBox for FileSelection {
-    type Output = Option<String>;
+    type Output = (Choice, Option<String>);
 
     fn show_with<B>(&self, backend: impl AsRef<B>) -> Result<Self::Output>
     where

@@ -20,23 +20,23 @@ use crate::Result;
 /// [`default_backend`]: ../fn.default_backend.html
 /// [`show_with`]: ../trait.DialogBox.html#method.show_with
 pub trait Backend {
-    /// Shows the given input dialog and returns the input.
-    fn show_input(&self, input: &super::Input) -> Result<Option<String>>;
+    /// Shows the given input dialog and returns the button choice and input.
+    fn show_input(&self, input: &super::Input) -> Result<(super::Choice, Option<String>)>;
 
-    /// Shows the given menu dialog and returns the choice.
+    /// Shows the given menu dialog and returns the button choice and menu item selection.
     fn show_menu(&self, menu: &super::Menu) -> Result<(super::Choice, Option<String>)>;
 
     /// Shows the given message dialog.
     fn show_message(&self, message: &super::Message) -> Result<()>;
 
-    /// Shows the given password dialog and returns the password.
-    fn show_password(&self, password: &super::Password) -> Result<Option<String>>;
+    /// Shows the given password dialog and returns the button choice and password.
+    fn show_password(&self, password: &super::Password) -> Result<(super::Choice, Option<String>)>;
 
     /// Shows the given question dialog and returns the choice.
     fn show_question(&self, question: &super::Question) -> Result<super::Choice>;
 
-    /// Shows the given file selection dialog and returns the file name.
-    fn show_file_selection(&self, file_selection: &super::FileSelection) -> Result<Option<String>>;
+    /// Shows the given file selection dialog and returns the button choice and file name selection.
+    fn show_file_selection(&self, file_selection: &super::FileSelection) -> Result<(super::Choice, Option<String>)>;
 }
 
 /*
