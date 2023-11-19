@@ -16,7 +16,7 @@ pub struct Dialog {
     label_helpbutton: Option<String>,
     label_extrabutton: Option<String>,
     insecure: bool,
-    no_cancelbutton: bool,
+    cancelbutton: bool,
     width: String,
     height: String,
 }
@@ -120,7 +120,7 @@ impl Dialog {
             common_options.push(label_extrabutton);
         }
 
-        if self.no_cancelbutton {
+        if !self.cancelbutton {
             common_options.push("--no-cancel");
         }
 
@@ -157,7 +157,7 @@ impl Default for Dialog {
             label_helpbutton: None,
             label_extrabutton: None,
             insecure: false,
-            no_cancelbutton: false,
+            cancelbutton: true,
             height: "0".to_string(),
             width: "0".to_string(),
         }
