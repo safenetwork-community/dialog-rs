@@ -298,8 +298,8 @@ pub enum Choice {
     Extra,
     /// The help button
     Help, 
-    /// The cancel button or a cancelled dialog.
-    Cancel,
+    /// The escape button.
+    Escape,
 }
 
 /// A question dialog box.

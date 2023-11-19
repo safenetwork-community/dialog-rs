@@ -164,7 +164,7 @@ fn get_choice(status: process::ExitStatus) -> Result<Choice> {
         match code {
             0 => Ok(Choice::Yes),
             1 => Ok(Choice::No),
-            255 => Ok(Choice::Cancel),
+            255 => Ok(Choice::Escape),
             _ => Err(Error::from(("dialog", status))),
         }
     } else {
@@ -178,8 +178,9 @@ fn get_stdchoice(output: process::Output) -> Result<(Choice, Option<String>)> {
         match code {
             0 => Ok((Choice::Yes, output_dialog)),
             1 => Ok((Choice::No, output_dialog)),
+            2 => Ok((Choice::Help, output_dialog)),
             3 => Ok((Choice::Extra, output_dialog)),
-            255 => Ok((Choice::Cancel, output_dialog)),
+            255 => Ok((Choice::Escape, output_dialog)),
             _ => Err(Error::from(("dialog", output.status))),
         } 
     } else { 
