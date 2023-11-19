@@ -16,6 +16,7 @@ pub struct Dialog {
     label_helpbutton: Option<String>,
     label_extrabutton: Option<String>,
     insecure: bool,
+    no_cancelbutton: bool,
     width: String,
     height: String,
 }
@@ -52,6 +53,13 @@ impl Dialog {
     /// The extra button is displayed between the OK and CANCEL button.
     pub fn set_extrabutton(&mut self, label: impl Into<String>) {
         self.label_extrabutton = Some(label.into());
+    }
+
+    /// Suppresses the cancel the button.
+    ///
+    /// ESC can still be used to cancel or quit.
+    pub fn no_cancelbutton(&mut self) {
+        self.cancelbutton = false;
     }
 
     /// Set the password input of the dialog box to insecure.
@@ -112,6 +120,10 @@ impl Dialog {
             common_options.push(label_extrabutton);
         }
 
+        if self.no_cancelbutton {
+            common_options.push("--no-cancel");
+        }
+
         if self.insecure {
             common_options.push("--insecure");
         } 
@@ -145,6 +157,7 @@ impl Default for Dialog {
             label_helpbutton: None,
             label_extrabutton: None,
             insecure: false,
+            no_cancelbutton: false,
             height: "0".to_string(),
             width: "0".to_string(),
         }
@@ -172,12 +185,13 @@ fn get_choice(status: process::ExitStatus) -> Result<Choice> {
     }
 }
 
-fn get_stdchoice(output: process::Output) -> Result<(Choice, Option<String>)> {
+// Gets button choice and item/input choice.
+fn get_choices(output: process::Output) -> Result<(Choice, Option<String>)> {
     if let Some(code) = output.status.code() {
         let output_dialog = String::from_utf8(output.stderr).map(Some).unwrap();
         match code {
             0 => Ok((Choice::Yes, output_dialog)),
-            1 => Ok((Choice::No, output_dialog)),
+            1 => Ok((Choice::Cancel, output_dialog)),
             2 => Ok((Choice::Help, output_dialog)),
             3 => Ok((Choice::Extra, output_dialog)),
             255 => Ok((Choice::Escape, output_dialog)),
@@ -192,7 +206,7 @@ impl super::Backend for Dialog {
     fn show_file_selection(&self, file_selection: &FileSelection) -> Result<(Choice, Option<String>)> {
         let dir = file_selection.path_to_string().ok_or("path not valid")?;
         self.execute("--fselect", &Some(dir), vec![])
-            .and_then(get_stdchoice)
+            .and_then(get_choices)
     }
 
     fn show_input(&self, input: &Input) -> Result<(Choice, Option<String>)> {
@@ -201,7 +215,7 @@ impl super::Backend for Dialog {
             args.push(default);
         }
         self.execute("--inputbox", &Some(input.text.clone()), args)
-            .and_then(get_stdchoice)
+            .and_then(get_choices)
     }
 
     fn show_menu(&self, menu: &Menu) -> Result<(Choice, Option<String>)> {
@@ -212,7 +226,7 @@ impl super::Backend for Dialog {
         args.extend(menu_list);
 
         self.execute("--menu", &Some(menu.text.clone()), args)
-            .and_then(get_stdchoice)
+            .and_then(get_choices)
     }
 
     fn show_message(&self, message: &Message) -> Result<()> {
@@ -223,7 +237,7 @@ impl super::Backend for Dialog {
 
     fn show_password(&self, password: &Password) -> Result<(Choice, Option<String>)> {
         self.execute("--passwordbox", &Some(password.text.clone()), vec![])
-            .and_then(get_stdchoice)
+            .and_then(get_choices)
     }
 
     fn show_question(&self, question: &Question) -> Result<Choice> {

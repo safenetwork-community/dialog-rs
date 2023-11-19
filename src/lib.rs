@@ -294,6 +294,8 @@ pub enum Choice {
     Yes,
     /// The no button.
     No,
+    /// The cancel button.
+    Cancel,
     /// The extra button.
     Extra,
     /// The help button
