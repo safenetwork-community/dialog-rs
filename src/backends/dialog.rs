@@ -173,20 +173,17 @@ fn get_choice(status: process::ExitStatus) -> Result<Choice> {
 }
 
 fn get_stdchoice(output: process::Output) -> Result<(Choice, Option<String>)> {
-    let status = output.status; 
-    match status.success() {
-        true => {
-            let output_dialog = String::from_utf8(output.stderr)
-            .map(Some).unwrap();
-            match status.code().unwrap() {
-                0 => Ok((Choice::Yes, output_dialog)),
-                1 => Ok((Choice::No, output_dialog)),
-                3 => Ok((Choice::Extra, output_dialog)),
-                255 => Ok((Choice::Cancel, output_dialog)),
-                _ => Err(Error::from(("dialog", output.status))),
-            } 
-        },
-        false => Err(Error::from(("dialog", status)))
+    if let Some(code) = output.status.code() {
+        let output_dialog = String::from_utf8(output.stderr).map(Some).unwrap();
+        match code {
+            0 => Ok((Choice::Yes, output_dialog)),
+            1 => Ok((Choice::No, output_dialog)),
+            3 => Ok((Choice::Extra, output_dialog)),
+            255 => Ok((Choice::Cancel, output_dialog)),
+            _ => Err(Error::from(("dialog", output.status))),
+        } 
+    } else { 
+        Err(Error::from(("dialog", output.status)))
     }
 }
 
