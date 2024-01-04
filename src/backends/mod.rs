@@ -20,6 +20,21 @@ use crate::Result;
 /// [`default_backend`]: ../fn.default_backend.html
 /// [`show_with`]: ../trait.DialogBox.html#method.show_with
 pub trait Backend {
+    /// Shows the given file selection dialog and returns the button choice and file name selection.
+    fn show_file_selection(&self, file_selection: &super::FileSelection) -> Result<(super::Choice, Option<String>)>;
+
+    /// Shows a form of labels and text fields and returns the button choice and inputs.
+    fn show_form(&self, form: &super::Form) -> Result<(super::Choice, Option<String>)>;
+
+    /// Shows a progress bar dialog.
+    fn show_gauge(&self, gauge: &super::Gauge) -> Result<()>;
+
+    /// Shows a form of labels and text fields and returns the button choice and inputs.
+    fn show_mixed_form(&self, form: &super::MixedForm) -> Result<(super::Choice, Option<String>)>;
+
+    /// Shows a progress bar dialog with items.
+    fn show_mixed_gauge(&self, guage: &super::MixedGauge) -> Result<()>;
+
     /// Shows the given input dialog and returns the button choice and input.
     fn show_input(&self, input: &super::Input) -> Result<(super::Choice, Option<String>)>;
 
@@ -32,11 +47,11 @@ pub trait Backend {
     /// Shows the given password dialog and returns the button choice and password.
     fn show_password(&self, password: &super::Password) -> Result<(super::Choice, Option<String>)>;
 
+    /// Shows a form of password fields and returns the button choice and passwords.
+    fn show_password_form(&self, form: &super::PasswordForm) -> Result<(super::Choice, Option<String>)>;
+
     /// Shows the given question dialog and returns the choice.
     fn show_question(&self, question: &super::Question) -> Result<super::Choice>;
-
-    /// Shows the given file selection dialog and returns the button choice and file name selection.
-    fn show_file_selection(&self, file_selection: &super::FileSelection) -> Result<(super::Choice, Option<String>)>;
 }
 
 /*

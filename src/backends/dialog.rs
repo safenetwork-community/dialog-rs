@@ -3,7 +3,15 @@
 
 use std::process;
 
-use crate::{Choice, Error, FileSelection, Menu, Input, Message, Password, Question, Result};
+use crate::{
+    Choice, Error, 
+    FileSelection, Form,
+    Gauge, Menu, MixedForm, 
+    MixedGauge, Input, 
+    Message, Password,
+    PasswordForm,
+    Question, Result
+};
 
 /// The `dialog` backend.
 ///
@@ -223,6 +231,27 @@ impl super::Backend for Dialog {
             .and_then(get_choices)
     }
 
+    fn show_form(&self, form: &Form) -> Result<(Choice, Option<String>)> {
+        let mut args: Vec<&str> = Vec::new();
+        let form_height: String = form.form_height.to_string();
+        args.push(form_height.as_str());
+        let form_list :Vec<&str> = form.list.iter().map(AsRef::as_ref).collect(); 
+        args.extend(form_list);
+ 
+        self.execute("--form", &Some(form.text.clone()), args)
+            .and_then(get_choices)
+    }
+
+    fn show_gauge(&self, gauge: &Gauge) -> Result<()> {
+        let mut args: Vec<&str> = Vec::new();
+        let gauge_percent: String = gauge.percent.to_string();
+        args.push(gauge_percent.as_str());
+
+        self.execute("--mixedgauge", &Some(gauge.text.clone()), args)
+            .and_then(|output| require_success(output.status))
+            .map(|_| ())
+    }
+
     fn show_input(&self, input: &Input) -> Result<(Choice, Option<String>)> {
         let mut args: Vec<&str> = Vec::new();
         if let Some(ref default) = input.default {
@@ -236,7 +265,7 @@ impl super::Backend for Dialog {
         let mut args: Vec<&str> = Vec::new();
         let menu_height: String = menu.menu_height.to_string();
         args.push(menu_height.as_str());
-        let menu_list: Vec<&str> = menu.list.iter().map(AsRef::as_ref).collect();
+        let menu_list :Vec<&str> = menu.list.iter().map(AsRef::as_ref).collect(); 
         args.extend(menu_list);
 
         self.execute("--menu", &Some(menu.text.clone()), args)
@@ -249,8 +278,40 @@ impl super::Backend for Dialog {
             .map(|_| ())
     }
 
+    fn show_mixed_gauge(&self, gauge: &MixedGauge) -> Result<()> {
+        let mut args: Vec<&str> = Vec::new();
+        let gauge_percent: String = gauge.percent.to_string();
+        args.push(gauge_percent.as_str());
+
+        self.execute("--mixedgauge", &Some(gauge.text.clone()), args)
+            .and_then(|output| require_success(output.status))
+            .map(|_| ())
+    }
+
+    fn show_mixed_form(&self, form: &MixedForm) -> Result<(Choice, Option<String>)> {
+        let mut args: Vec<&str> = Vec::new();
+        let form_height: String = form.form_height.to_string();
+        args.push(form_height.as_str());
+        let form_list :Vec<&str> = form.list.iter().map(AsRef::as_ref).collect(); 
+        args.extend(form_list);
+ 
+        self.execute("--mixedform", &Some(form.text.clone()), args)
+            .and_then(get_choices)
+    }
+
     fn show_password(&self, password: &Password) -> Result<(Choice, Option<String>)> {
         self.execute("--passwordbox", &Some(password.text.clone()), vec![])
+            .and_then(get_choices)
+    }
+
+    fn show_password_form(&self, form: &PasswordForm) -> Result<(Choice, Option<String>)> {
+        let mut args: Vec<&str> = Vec::new();
+        let form_height: String = form.form_height.to_string();
+        args.push(form_height.as_str());
+        let form_list :Vec<&str> = form.list.iter().map(AsRef::as_ref).collect(); 
+        args.extend(form_list);
+ 
+        self.execute("--passwordform", &Some(form.text.clone()), args)
             .and_then(get_choices)
     }
 

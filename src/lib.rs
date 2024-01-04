@@ -8,10 +8,15 @@
 //! The `dialog` crate can be used to display different types of dialog boxes.  The supported types
 //! are:
 //! - [`FileSelection`][]: a file chooser dialog box
+//! - [`Form`][]: a form
+//! - [`Gauge`][]: a gauge
 //! - [`Input`][]: a text input dialog
 //! - [`Menu`][]: a menu selection box
 //! - [`Message`][]: a simple message box
+//! - [`MixedForm`][]: a mixed form
+//! - [`MixedGauge`][]: a mixed gauge
 //! - [`Password`][]: a password input dialog
+//! - [`PasswordForm`][]: a password form
 //! - [`Question`][]: a question dialog box
 //!
 //! These dialog boxes can be displayed using only one type of backend:
@@ -121,7 +126,7 @@ pub trait DialogBox {
 /// use dialog::DialogBox;
 ///
 /// let choice = dialog::Menu::new("Please choose one of the following items..", 
-/// 10, vec![["item1","value1"]["item2","value2"]])
+/// 10, vec![["item1","value1"], ["item2","value2"]])
 ///     .show()
 ///     .expect("Could not display menu box");
 /// ```
@@ -451,3 +456,216 @@ pub fn default_backend() -> Box<dyn backends::Backend> {
 
     Box::new(backends::Dialog::new())
 }
+
+/// A gauge box.
+///
+/// A guage box displays a progress bar.  
+///
+/// # Example
+///
+/// ```no_run
+/// use dialog::Gauge;
+///
+/// dialog::Gauge::new("progress...")
+///     .show()
+///     .expect("Could not display dialog box");
+/// ```
+pub struct Gauge {
+    text: String,
+    percent: u8,
+}
+
+impl Gauge {
+    /// Creates a new message box with the given text.
+    pub fn new(text: impl Into<String>, percent: u8) -> Gauge {
+        Gauge {
+            text: text.into(),
+            percent: percent,
+        }
+    }
+}
+
+impl DialogBox for Gauge {
+    type Output = ();
+
+    fn show_with<B>(&self, backend: impl AsRef<B>) -> Result<Self::Output>
+    where
+        B: backends::Backend + ?Sized,
+    {
+        backend.as_ref().show_gauge(self)
+    }
+}
+
+/// A mixed gauge box.
+///
+/// A guage box displays a progress bar.  
+///
+/// # Example
+///
+/// ```no_run
+/// use dialog::MixedGauge;
+///
+/// dialog::MixedGauge::new("progress...")
+///     .show()
+///     .expect("Could not display dialog box");
+/// ```
+pub struct MixedGauge {
+    text: String,
+    percent: u8,
+}
+
+impl MixedGauge {
+    /// Creates a new message box with the given text.
+    pub fn new(text: impl Into<String>, percent: u8) -> MixedGauge {
+        MixedGauge {
+            text: text.into(),
+            percent: percent,
+        }
+    }
+}
+
+impl DialogBox for MixedGauge {
+    type Output = ();
+
+    fn show_with<B>(&self, backend: impl AsRef<B>) -> Result<Self::Output>
+    where
+        B: backends::Backend + ?Sized,
+    {
+        backend.as_ref().show_mixed_gauge(self)
+    }
+}
+
+/// A form box.
+///
+/// A form box displays a progress bar.  
+///
+/// # Example
+///
+/// ```no_run
+/// use dialog::Form;
+///
+/// dialog::Form::new("progress...")
+///     .show()
+///     .expect("Could not display dialog box");
+/// ```
+pub struct Form {
+    text: String,
+    form_height: u32,
+    list: Vec<String>,
+}
+
+impl Form {
+    /// Creates a new message box with the given text.
+    pub fn new(text: impl Into<String>, form_height: u32, 
+        list: Vec<(String, u8, u8, String, u8, u8, u8, u8)>) -> Form {
+        Form {
+            text: text.into(),
+            form_height: form_height,
+            list: list.iter().map(|(x1, x2, x3, x4, x5, x6, x7, x8)| 
+            format!("{} {} {} {} {} {} {} {}", x1, x2, x3, x4, x5, x6, x7, x8))
+            .collect()
+        }
+    }
+}
+
+impl DialogBox for Form { 
+    type Output = (Choice, Option<String>);
+
+    fn show_with<B>(&self, backend: impl AsRef<B>) -> Result<Self::Output>
+    where
+        B: backends::Backend + ?Sized,
+    {
+        backend.as_ref().show_form(self)
+    }
+}
+
+/// A mixedform box.
+///
+/// A mixedform box displays a form with labels
+/// and text fields of different forms to be filled out.  
+///
+/// # Example
+///
+/// ```no_run
+/// use dialog::MixedForm;
+///
+/// dialog::MixedForm::new("Please enter the information")
+///     .show()
+///     .expect("Could not display dialog box");
+/// ```
+pub struct MixedForm {
+    text: String,
+    form_height: u32,
+    list: Vec<String>,
+}
+
+impl MixedForm {
+    /// Creates a new message box with the given text.
+    pub fn new(text: impl Into<String>, form_height: u32, 
+        list: Vec<(String, u8, u8, String, u8, u8, u8, u8)>) -> MixedForm {
+        MixedForm {
+            text: text.into(),
+            form_height: form_height,
+            list: list.iter().map(|(x1, x2, x3, x4, x5, x6, x7, x8)| 
+            format!("{} {} {} {} {} {} {} {}", x1, x2, x3, x4, x5, x6, x7, x8))
+            .collect()
+        }
+    }
+}
+
+impl DialogBox for MixedForm {
+    type Output = (Choice, Option<String>);
+
+    fn show_with<B>(&self, backend: impl AsRef<B>) -> Result<Self::Output>
+    where
+        B: backends::Backend + ?Sized,
+    {
+        backend.as_ref().show_mixed_form(self)
+    }
+}
+
+/// A password form box.
+///
+/// A form with password input fields.  
+///
+/// # Example
+///
+/// ```no_run
+/// use dialog::PasswordForm;
+///
+/// dialog::PasswordForm::new("Please enter the information")
+///     .show()
+///     .expect("Could not display dialog box");
+/// ```
+pub struct PasswordForm {
+    text: String,
+    form_height: u32,
+    list: Vec<String>,
+}
+
+impl PasswordForm {
+    /// Creates a new message box with the given text.
+    pub fn new(text: impl Into<String>, form_height: u32, 
+        list: Vec<(String, u8, u8, String, u8, u8, u8, u8)>) -> PasswordForm {
+        PasswordForm {
+            text: text.into(),
+            form_height: form_height,
+            list: list.iter().map(|(x1, x2, x3, x4, x5, x6, x7, x8)| 
+            format!("{} {} {} {} {} {} {} {}", x1, x2, x3, x4, x5, x6, x7, x8))
+            .collect()
+        }
+    }
+}
+
+impl DialogBox for PasswordForm {
+    type Output = (Choice, Option<String>);
+
+    fn show_with<B>(&self, backend: impl AsRef<B>) -> Result<Self::Output>
+    where
+        B: backends::Backend + ?Sized,
+    {
+        backend.as_ref().show_password_form(self)
+    }
+}
+
+
