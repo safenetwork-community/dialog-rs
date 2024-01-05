@@ -50,11 +50,11 @@ impl Dialog {
         self.title = Some(title.into());
     }
 
-    /// Sets the help button for the dialog box.
+    /// Sets the ok button for the dialog box.
     ///
-    /// The help button is displayed after the OK and CANCEL button.
-    pub fn set_helpbutton(&mut self, label: impl Into<String>) {
-        self.label_helpbutton = Some(label.into());
+    /// The ok button is displayed before the CANCEL button.
+    pub fn set_okbutton(&mut self, label: impl Into<String>) {
+        self.label_okbutton = Some(label.into());
     }
 
     /// Sets the extra button for the dialog box.
@@ -70,6 +70,14 @@ impl Dialog {
     pub fn set_cancellabel(&mut self, label: impl Into<String>) {
         self.label_cancelbutton = Some(label.into());
     }
+
+    /// Sets the help button for the dialog box.
+    ///
+    /// The help button is displayed after the OK and CANCEL button.
+    pub fn set_helpbutton(&mut self, label: impl Into<String>) {
+        self.label_helpbutton = Some(label.into());
+    }
+
 
     /// Suppresses the cancel the button.
     ///
@@ -124,12 +132,11 @@ impl Dialog {
             common_options.push(title);
         } 
 
-        if let Some(ref label_helpbutton) = self.label_helpbutton {
-            common_options.push("--help-button");
-            common_options.push("--help-label");
-            common_options.push(label_helpbutton);
+        if let Some(ref label_okbutton) = self.label_okbutton {
+            common_options.push("--ok-label");
+            common_options.push(label_okbutton);
         }
-
+        
         if let Some(ref label_extrabutton) = self.label_extrabutton {
             common_options.push("--extra-button");
             common_options.push("--extra-label");
@@ -139,6 +146,12 @@ impl Dialog {
         if let Some(ref label_cancelbutton) = self.label_cancelbutton {
             common_options.push("--cancel-label");
             common_options.push(label_cancelbutton);
+        }
+
+        if let Some(ref label_helpbutton) = self.label_helpbutton {
+            common_options.push("--help-button");
+            common_options.push("--help-label");
+            common_options.push(label_helpbutton);
         }
 
         if !self.cancelbutton {
