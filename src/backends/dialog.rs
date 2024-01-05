@@ -54,14 +54,14 @@ impl Dialog {
     /// Sets the ok button for the dialog box.
     ///
     /// The ok button is displayed before the CANCEL button.
-    pub fn set_okbutton(&mut self, label: impl Into<String>) {
+    pub fn set_oklabel(&mut self, label: impl Into<String>) {
         self.label_okbutton = Some(label.into());
     }
 
     /// Sets the extra button for the dialog box.
     ///
     /// The extra button is displayed between the OK and CANCEL button.
-    pub fn set_extrabutton(&mut self, label: impl Into<String>) {
+    pub fn set_extralabel(&mut self, label: impl Into<String>) {
         self.label_extrabutton = Some(label.into());
     }
 
@@ -75,7 +75,7 @@ impl Dialog {
     /// Sets the help button for the dialog box.
     ///
     /// The help button is displayed after the OK and CANCEL button.
-    pub fn set_helpbutton(&mut self, label: impl Into<String>) {
+    pub fn set_helplabel(&mut self, label: impl Into<String>) {
         self.label_helpbutton = Some(label.into());
     }
 
