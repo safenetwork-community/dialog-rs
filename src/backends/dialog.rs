@@ -21,9 +21,10 @@ use crate::{
 pub struct Dialog {
     backtitle: Option<String>,
     title: Option<String>,
+    label_okbutton: Option<String>,
+    label_extrabutton: Option<String>,
     label_cancelbutton: Option<String>,
     label_helpbutton: Option<String>,
-    label_extrabutton: Option<String>,
     insecure: bool,
     cancelbutton: bool,
     width: String,
@@ -188,9 +189,10 @@ impl Default for Dialog {
         Dialog {
             backtitle: None,
             title: None,
+            label_okbutton: None,
+            label_extrabutton: None,
             label_cancelbutton: None,
             label_helpbutton: None,
-            label_extrabutton: None,
             insecure: false,
             cancelbutton: true,
             height: "0".to_string(),
