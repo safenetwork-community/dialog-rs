@@ -40,7 +40,7 @@ impl Dialog {
     /// Sets the backtitle for the dialog box.
     ///
     /// The backtitle is displayed on the backdrop, at the top of the screen.
-    pub fn set_backtitle(&mut self, backtitle: impl Into<String>) -> &'a mut Dialog {
+    pub fn set_backtitle<'a>(&'a mut self, backtitle: impl Into<String>) -> &'a mut Dialog {
         self.backtitle = Some(backtitle.into());
         self
     }
@@ -48,7 +48,7 @@ impl Dialog {
     /// Sets the title for the dialog box.
     ///
     /// The title is displayed in the box, at the top.
-    pub fn set_title(&mut self, title: impl Into<String>) -> &'a mut Dialog {
+    pub fn set_title<'a>(&'a mut self, title: impl Into<String>) -> &'a mut Dialog {
         self.title = Some(title.into());
         self
     }
@@ -56,7 +56,7 @@ impl Dialog {
     /// Sets the ok button for the dialog box.
     ///
     /// The ok button is displayed before the CANCEL button.
-    pub fn set_oklabel(&mut self, label: impl Into<String>) -> &'a mut Dialog {
+    pub fn set_oklabel<'a>(&'a mut self, label: impl Into<String>) -> &'a mut Dialog {
         self.label_okbutton = Some(label.into());
         self
     }
@@ -64,7 +64,7 @@ impl Dialog {
     /// Sets the extra button for the dialog box.
     ///
     /// The extra button is displayed between the OK and CANCEL button.
-    pub fn set_extralabel(&mut self, label: impl Into<String>) -> &'a mut Dialog {
+    pub fn set_extralabel<'a>(&'a mut self, label: impl Into<String>) -> &'a mut Dialog {
         self.label_extrabutton = Some(label.into());
         self
     }
@@ -72,7 +72,7 @@ impl Dialog {
     /// Sets the label of the cancel button for the dialog box.
     ///
     /// The cancel button is displayed after the OK button.
-    pub fn set_cancellabel(&mut self, label: impl Into<String>) -> &'a mut Dialog {
+    pub fn set_cancellabel<'a>(&'a mut self, label: impl Into<String>) -> &'a mut Dialog {
         self.label_cancelbutton = Some(label.into());
         self
     }
@@ -80,7 +80,7 @@ impl Dialog {
     /// Sets the help button for the dialog box.
     ///
     /// The help button is displayed after the OK and CANCEL button.
-    pub fn set_helplabel(&mut self, label: impl Into<String>) -> &'a mut Dialog {
+    pub fn set_helplabel<'a>(&'a mut self, label: impl Into<String>) -> &'a mut Dialog {
         self.label_helpbutton = Some(label.into());
         self
     }
@@ -89,7 +89,7 @@ impl Dialog {
     /// Suppresses the cancel the button.
     ///
     /// ESC can still be used to cancel or quit.
-    pub fn no_cancelbutton(&mut self) -> &'a mut Dialog {
+    pub fn no_cancelbutton<'a>(&'a mut self) -> &'a mut Dialog {
         self.cancelbutton = false;
         self
     }
@@ -98,7 +98,7 @@ impl Dialog {
     ///
     /// At the insecure level, input will be visible in asterisks per character.
     /// At the secure level, any input will not be visible at all.
-    pub fn set_insecure(&mut self, insecure: bool) -> &'a mut Dialog {
+    pub fn set_insecure<'a>(&'a mut self, insecure: bool) -> &'a mut Dialog {
         self.insecure = insecure;
         self
     }
@@ -107,7 +107,7 @@ impl Dialog {
     ///
     /// The height is given in characters.  The actual height of the dialog box might be higher
     /// than the given height if the content would not fit otherwise.  The default height is zero.
-    pub fn set_height(&mut self, height: u32) -> &'a mut Dialog {
+    pub fn set_height<'a>(&'a mut self, height: u32) -> &'a mut Dialog {
         self.height = height.to_string();
         self
     }
@@ -116,7 +116,7 @@ impl Dialog {
     ///
     /// The width is given in characters.  The actual width of the dialog box might be higher than
     /// the given width if the content would not fit otherwise.  The default width is zero.
-    pub fn set_width(&mut self, width: u32) -> &'a mut Dialog {
+    pub fn set_width<'a>(&'a mut self, width: u32) -> &'a mut Dialog {
         self.width = width.to_string();
         self
     }
