@@ -122,15 +122,15 @@ impl Dialog {
     }
 
     fn execute(&self, boxtype: &str, boxtype_arg: &Option<String>,
-        args: Vec<&str>, piped: bool) -> Result<process::Output> {
+        args: Vec<&str>, echo_child: Option<process::Child>) -> Result<process::Output> {
         let mut command = process::Command::new("dialog");
-        command.stdin(process::Stdio::inherit());
 
-        match piped {
-            false => command.stdout(process::Stdio::inherit()),
-            true => command.stdout(process::Stdio::piped()),
+        match echo_child {
+            Some(echo_child) => command.stdin(process::Stdio::from(echo_child.stdout.unwrap())),
+            None => command.stdin(process::Stdio::inherit()),
         };
 
+        command.stdout(process::Stdio::inherit());
         let mut common_options: Vec<&str> = Vec::new();
 
         if let Some(ref backtitle) = self.backtitle {
@@ -252,7 +252,7 @@ fn get_choices(output: process::Output) -> Result<(Choice, Option<String>)> {
 impl super::Backend for Dialog {
     fn show_file_selection(&self, file_selection: &FileSelection) -> Result<(Choice, Option<String>)> {
         let dir = file_selection.path_to_string().ok_or("path not valid")?;
-        self.execute("--fselect", &Some(dir), vec![], false)
+        self.execute("--fselect", &Some(dir), vec![], None)
             .and_then(get_choices)
     }
 
@@ -263,18 +263,18 @@ impl super::Backend for Dialog {
         let form_list :Vec<&str> = form.list.iter().map(AsRef::as_ref).collect(); 
         args.extend(form_list);
  
-        self.execute("--form", &Some(form.text.clone()), args, false)
+        self.execute("--form", &Some(form.text.clone()), args, None)
             .and_then(get_choices)
     }
 
     fn show_gauge(&self, gauge: &Gauge) -> Result<()> {
-        process::Command::new("echo")
+        let echo_child = process::Command::new("echo")
         .arg(gauge.percent.to_string())
-        .stdout(process::Stdio::inherit())
-        .output()
+        .stdout(process::Stdio::piped())
+        .spawn()
         .expect("Failed to execute echo command"); 
 
-        self.execute("--gauge", &Some(gauge.text.clone()), vec![], true)
+        self.execute("--gauge", &Some(gauge.text.clone()), vec![], Some(echo_child))
             .and_then(|output| require_success(output.status))
             .map(|_| ())
     }
@@ -284,7 +284,7 @@ impl super::Backend for Dialog {
         if let Some(ref default) = input.default {
             args.push(default);
         }
-        self.execute("--inputbox", &Some(input.text.clone()), args, false)
+        self.execute("--inputbox", &Some(input.text.clone()), args, None)
             .and_then(get_choices)
     }
 
@@ -295,12 +295,12 @@ impl super::Backend for Dialog {
         let menu_list :Vec<&str> = menu.list.iter().map(AsRef::as_ref).collect(); 
         args.extend(menu_list);
 
-        self.execute("--menu", &Some(menu.text.clone()), args, false)
+        self.execute("--menu", &Some(menu.text.clone()), args, None)
             .and_then(get_choices)
     }
 
     fn show_message(&self, message: &Message) -> Result<()> {
-        self.execute("--msgbox", &Some(message.text.clone()), vec![], false)
+        self.execute("--msgbox", &Some(message.text.clone()), vec![], None)
             .and_then(|output| require_success(output.status))
             .map(|_| ())
     }
@@ -310,7 +310,7 @@ impl super::Backend for Dialog {
         let gauge_percent: String = gauge.percent.to_string();
         args.push(gauge_percent.as_str());
 
-        self.execute("--mixedgauge", &Some(gauge.text.clone()), args, false)
+        self.execute("--mixedgauge", &Some(gauge.text.clone()), args, None)
             .and_then(|output| require_success(output.status))
             .map(|_| ())
     }
@@ -322,12 +322,12 @@ impl super::Backend for Dialog {
         let form_list :Vec<&str> = form.list.iter().map(AsRef::as_ref).collect(); 
         args.extend(form_list);
  
-        self.execute("--mixedform", &Some(form.text.clone()), args, false)
+        self.execute("--mixedform", &Some(form.text.clone()), args, None)
             .and_then(get_choices)
     }
 
     fn show_password(&self, password: &Password) -> Result<(Choice, Option<String>)> {
-        self.execute("--passwordbox", &Some(password.text.clone()), vec![], false)
+        self.execute("--passwordbox", &Some(password.text.clone()), vec![], None)
             .and_then(get_choices)
     }
 
@@ -338,12 +338,12 @@ impl super::Backend for Dialog {
         let form_list :Vec<&str> = form.list.iter().map(AsRef::as_ref).collect(); 
         args.extend(form_list);
  
-        self.execute("--passwordform", &Some(form.text.clone()), args, false)
+        self.execute("--passwordform", &Some(form.text.clone()), args, None)
             .and_then(get_choices)
     }
 
     fn show_question(&self, question: &Question) -> Result<Choice> {
-        self.execute("--yesno", &Some(question.text.clone()), vec![], false)
+        self.execute("--yesno", &Some(question.text.clone()), vec![], None)
             .and_then(|output| get_choice(output.status))
     }
 }
