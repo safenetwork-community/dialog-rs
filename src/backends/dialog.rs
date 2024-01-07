@@ -268,15 +268,13 @@ impl super::Backend for Dialog {
     }
 
     fn show_gauge(&self, gauge: &Gauge) -> Result<()> {
-        let mut args: Vec<&str> = Vec::new();
-
         process::Command::new("echo")
-        .arg(gauge.percent)
+        .arg(gauge.percent.to_string())
         .stdout(process::Stdio::inherit())
         .output()
         .expect("Failed to execute echo command");
 
-        self.execute("--gauge", &Some(gauge.text.clone()), args)
+        self.execute("--gauge", &Some(gauge.text.clone()), vec![])
             .and_then(|output| require_success(output.status))
             .map(|_| ())
     }
