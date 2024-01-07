@@ -270,7 +270,7 @@ impl super::Backend for Dialog {
     fn show_gauge(&self, gauge: &Gauge) -> Result<()> {
         let mut args: Vec<&str> = Vec::new();
 
-        Command::new("echo")
+        process::Command::new("echo")
         .arg(gauge.percent)
         .stdout(process::Stdio::inherit())
         .output()
